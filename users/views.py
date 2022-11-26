@@ -26,7 +26,7 @@ class RegisterView(generics.GenericAPIView):
         token = RefreshToken.for_user(user).access_token
 
         frontend_url = '127.0.0.1:3000'
-        url = 'http://' + frontend_url + reverse('signup') + '?token=' + str(token)
+        url = 'http://' + frontend_url + reverse('signup', kwargs={'token': token})
 
         email_subject = 'Complete your registration'
         email_body = 'Welcome to Sotoon!' + '\n Use the link ' \
@@ -46,36 +46,20 @@ class UserViewSet(viewsets.ModelViewSet):
 class SignUp(views.APIView):
     serializer_class = SignUpSerializer
 
-    # token_param_config = openapi.Parameter('token', in_=openapi.IN_QUERY, description="description",
-    #                                        type=openapi.TYPE_STRING)
-    # username_param_config = openapi.Parameter('username', in_=openapi.IN_QUERY, description="description",
-    #                                           type=openapi.TYPE_STRING)
-    # name_param_config = openapi.Parameter('name', in_=openapi.IN_QUERY, description="description",
-    #                                       type=openapi.TYPE_STRING)
-    # birthday_param_config = openapi.Parameter('birthday', in_=openapi.IN_QUERY, description="description",
-    #                                           type=openapi.TYPE_STRING)
-    # password_param_config = openapi.Parameter('password', in_=openapi.IN_QUERY, description="description",
-    #                                           type=openapi.TYPE_STRING)
-    # id_param_config = openapi.Parameter('id_number', in_=openapi.IN_QUERY, description="description",
-    #                                     type=openapi.TYPE_STRING)
-    #
-    # @swagger_auto_schema(
-    #     manual_parameters=[token_param_config, username_param_config, name_param_config, birthday_param_config,
-    #                        password_param_config, id_param_config])
-    def post(self, request):
-        token = request.GET.get('token')
-
+    def post(self, request, token):
+        # token = request.GET.get('token')
+        print('token', token)
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
 
         user_data = serializer.data
 
         try:
-            payload = jwt.decode(token, settings.SECRET_KEY)
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
             user = User.objects.get(id=payload['user_id'])
 
             if not user.is_verified:
+
                 user.is_verified = True
                 user.username = user_data['username']
                 user.name = user_data['name']
@@ -91,6 +75,9 @@ class SignUp(views.APIView):
 
         except jwt.exceptions.DecodeError as identifier:
             return Response({'error: Invalid token'}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            print(e)
+            return Response({'error: ' + str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 # def get(self, request):

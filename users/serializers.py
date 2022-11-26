@@ -29,7 +29,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 class SignUpSerializer(serializers.ModelSerializer):
     # token = serializers.CharField(max_length=555)
-
+    email = serializers.EmailField(max_length=255, min_length=3, read_only=True)
     password = serializers.CharField(max_length=50, min_length=8, write_only=True)
     username = serializers.CharField(max_length=50, min_length=6)
     name = serializers.CharField(max_length=50, min_length=4)
@@ -53,7 +53,7 @@ class SignUpSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['username', 'name', 'id_number', 'birthday', 'password']
+        fields = ['username', 'name', 'id_number', 'birthday', 'password', 'email']
 
 
 class LoginSerializer(serializers.ModelSerializer):
