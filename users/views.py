@@ -90,36 +90,13 @@ class SignupAPIView(generics.GenericAPIView):
     serializer_class = SignupSerializer
     renderer_classes = (UserRenderer,)
 
-    def post(self, request):
+    def put(self, request):
         # token = request.GET.get('token')
-        print('token', token)
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        user_data = serializer.data
+        return Response({'success': True, 'message': 'Sign up completed'}, status=status.HTTP_200_OK)
 
-        try:
-            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
-            user = User.objects.get(id=payload['user_id'])
-
-            if user.is_verified:
-                user.username = user_data['username']
-                user.name = user_data['name']
-                user.birthday = user_data['birthday']
-                user.id_number = user_data['id_number']
-                user.set_password(user_data['password'])
-
-                user.save()
-            return Response({'account': 'Successfully verified'}, status=status.HTTP_200_OK)
-
-        except jwt.ExpiredSignatureError as identifier:
-            return Response({'error: Activation link has expired'}, status=status.HTTP_400_BAD_REQUEST)
-
-        except jwt.exceptions.DecodeError as identifier:
-            return Response({'error: Invalid token'}, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            print(e)
-            return Response({'error: ' + str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class LoginAPIView(generics.GenericAPIView):

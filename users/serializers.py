@@ -1,5 +1,5 @@
 from django.urls import reverse
-from rest_framework import serializers
+from rest_framework import serializers, status
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 from .models import User
@@ -7,6 +7,10 @@ from django.contrib import auth
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.encoding import smart_str, force_str, smart_bytes, DjangoUnicodeDecodeError
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
+import jwt
+from django.conf import settings
+from rest_framework.response import Response
+
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -41,17 +45,22 @@ class EmailVerificationSerializer(serializers.ModelSerializer):
 
 
 class SignupSerializer(serializers.ModelSerializer):
-    # token = serializers.CharField(max_length=555)
     password = serializers.CharField(max_length=50, min_length=8, write_only=True)
     username = serializers.CharField(max_length=50, min_length=6)
     name = serializers.CharField(max_length=50, min_length=4)
     id_number = serializers.CharField(min_length=8, max_length=10)
     birthday = serializers.DateField()
-    redirect_url = serializers.CharField(max_length=500, min_length=3, write_only=True)
+    token = serializers.CharField(max_length=555)
+
+    # redirect_url = serializers.CharField(max_length=500, min_length=3, required=False)
 
     def validate(self, attrs):
+        token = attrs.get('token', '')
+        name = attrs.get('name', '')
         username = attrs.get('username', '')
         id_number = attrs.get('id_number', '')
+        password = attrs.get('password', '')
+        birthday = attrs.get('birthday', '')
 
         if not username.isalnum():
             raise serializers.ValidationError('The username should only contain alphanumeric characters')
@@ -62,11 +71,35 @@ class SignupSerializer(serializers.ModelSerializer):
         if User.objects.filter(id_number=id_number).exists():
             raise serializers.ValidationError({'id_number': 'ID number is already in use'})
 
-        return attrs
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+            user = User.objects.get(id=payload['user_id'])
+
+            if user.is_verified:
+                user.username = username
+                user.name = name
+                user.birthday = birthday
+                user.id_number = id_number
+                user.set_password(password)
+
+                user.save()
+
+                return user
+            return super().validate(attrs)
+
+        except jwt.ExpiredSignatureError as identifier:
+            return Response({'error: Activation link has expired'}, status=status.HTTP_400_BAD_REQUEST)
+
+        except jwt.exceptions.DecodeError as identifier:
+            return Response({'error: Invalid token'}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            print(e)
+            return Response({'error: ' + str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
 
     class Meta:
         model = User
-        fields = ['username', 'name', 'id_number', 'birthday', 'password', 'email', 'redirect_url']
+        fields = ['username', 'name', 'id_number', 'birthday', 'password', 'token']
 
 
 class LoginSerializer(serializers.ModelSerializer):
