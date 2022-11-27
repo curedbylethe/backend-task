@@ -36,7 +36,8 @@ INSTALLED_APPS = [
     'users.apps.UsersConfig',
     "corsheaders",
     'drf_yasg',
-    "income.apps.IncomeConfig"
+    "income.apps.IncomeConfig",
+    'rest_framework_simplejwt.token_blacklist'
 ]
 
 MIDDLEWARE = [
