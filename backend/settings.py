@@ -2,9 +2,11 @@ import environ
 import datetime
 from pathlib import Path
 import dj_database_url
-
+from boto.s3.connection import S3Connection
+import os
 env = environ.Env()
 environ.Env.read_env()
+s3 = S3Connection(os.environ['S3_KEY'], os.environ['S3_SECRET'])
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -162,9 +164,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Email settings
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = env('EMAIL_HOST')
+EMAIL_HOST = os.environ['EMAIL_HOST']
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = env('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
-RECIPIENT_ADDRESS = env('RECIPIENT_ADDRESS')
+EMAIL_HOST_USER = os.environ['EMAIL_HOST_USER']
+EMAIL_HOST_PASSWORD = os.environ['EMAIL_HOST_PASSWORD']
+RECIPIENT_ADDRESS = os.environ['RECIPIENT_ADDRESS']
