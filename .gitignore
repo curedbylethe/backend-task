@@ -259,7 +259,7 @@ poetry.toml
 
 .DS_Store
 .idea/
-
+staticfiles/
 sotoon.task.sqlite3.db
 
 

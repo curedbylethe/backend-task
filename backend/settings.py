@@ -2,11 +2,10 @@ import environ
 import datetime
 from pathlib import Path
 import dj_database_url
-from boto.s3.connection import S3Connection
 import os
+
 env = environ.Env()
 environ.Env.read_env()
-s3 = S3Connection(os.environ['S3_KEY'], os.environ['S3_SECRET'])
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -18,13 +17,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-f%$4ixe9gdr*s5!a$zpq#!x^a(p!w937e22f8kfs6v_!jy^sb%'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
-
-WHITENOISE_USE_FINDERS = True
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
+ALLOWED_HOSTS = ['*']
 # Authentication
 
 AUTH_USER_MODEL = 'users.User'
@@ -48,8 +43,8 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     "corsheaders.middleware.CorsMiddleware",
     'django.middleware.common.CommonMiddleware',
@@ -98,7 +93,7 @@ REST_FRAMEWORK = {
     ),
 }
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': datetime.timedelta(minutes=5),
+    'ACCESS_TOKEN_LIFETIME': datetime.timedelta(minutes=15),
     'REFRESH_TOKEN_LIFETIME': datetime.timedelta(days=1),
 }
 
@@ -109,16 +104,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': 'sotoon.task.sqlite3.db',
-        'USER': env('DB_USERNAME'),
-        'PASSWORD': env('DB_PASSWORD'),
-        'HOST': 'localhost',
-        'PORT': '',
-
     }
 }
 
-db_from_env = dj_database_url.config(conn_max_age=500)
-DATABASES['default'].update(db_from_env)
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
@@ -154,7 +142,10 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / "staticfiles"
+STATIC_URL = '/static/'
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
@@ -169,4 +160,3 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.environ['EMAIL_HOST_USER']
 EMAIL_HOST_PASSWORD = os.environ['EMAIL_HOST_PASSWORD']
-RECIPIENT_ADDRESS = os.environ['RECIPIENT_ADDRESS']
