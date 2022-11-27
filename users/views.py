@@ -77,7 +77,7 @@ class EmailVerify(views.APIView):
             if len(redirect_url) > 3:
                 return redirect(redirect_url + '?token=' + str(token))
             else:
-                return redirect("http://127.0.0.1:3000/auth/signup/" + '?token=' + str(token))
+                return redirect("https://super-kitten-8cba14.netlify.app/auth/signup/" + '?token=' + str(token))
 
         except jwt.ExpiredSignatureError as identifier:
             return Response({'error: Activation link has expired'}, status=status.HTTP_400_BAD_REQUEST)
