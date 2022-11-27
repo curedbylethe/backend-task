@@ -11,8 +11,8 @@ class Income(models.Model):
     ]
 
     source = models.CharField(choices=SOURCE_OPTIONS, max_length=255)
-    amount = models.DecimalField(max_digits=12, decimal_places=2)
-    owner = models.ForeignKey(to=User, related_name='income', on_delete=models.CASCADE)
+    amount = models.DecimalField(max_digits=16, decimal_places=2)
+    owner = models.ForeignKey(to=User, on_delete=models.CASCADE)
     date = models.DateField(blank=False, null=False)
 
     class Meta:
